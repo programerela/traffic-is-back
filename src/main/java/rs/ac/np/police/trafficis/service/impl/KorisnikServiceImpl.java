@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.np.police.trafficis.model.Korisnik;
 import rs.ac.np.police.trafficis.repository.KorisnikRepository;
 import rs.ac.np.police.trafficis.service.KorisnikService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +14,13 @@ import java.util.Optional;
 public class KorisnikServiceImpl implements KorisnikService {
 
     private final KorisnikRepository korisnikRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public KorisnikServiceImpl(KorisnikRepository korisnikRepository) {
+    public KorisnikServiceImpl(KorisnikRepository korisnikRepository,
+                               PasswordEncoder passwordEncoder) {
         this.korisnikRepository = korisnikRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -24,7 +28,8 @@ public class KorisnikServiceImpl implements KorisnikService {
         if (existsByUsername(korisnik.getUsername())) {
             throw new RuntimeException("Korisnik sa username-om " + korisnik.getUsername() + " već postoji");
         }
-        // TODO: Dodati enkripciju lozinke (BCrypt)
+        // Enkripcija lozinke
+        korisnik.setPassword(passwordEncoder.encode(korisnik.getPassword()));
         return korisnikRepository.save(korisnik);
     }
 
@@ -35,6 +40,13 @@ public class KorisnikServiceImpl implements KorisnikService {
             throw new RuntimeException("Korisnik sa ID " + id + " ne postoji");
         }
         korisnik.setIdUser(id);
+        // Enkripcija lozinke ako je promenjena
+        if (korisnik.getPassword() != null && !korisnik.getPassword().isEmpty()) {
+            korisnik.setPassword(passwordEncoder.encode(korisnik.getPassword()));
+        } else {
+            // Zadrži staru lozinku ako nova nije poslata
+            korisnik.setPassword(postojeciKorisnik.get().getPassword());
+        }
         return korisnikRepository.save(korisnik);
     }
 
