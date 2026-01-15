@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.response.VozacResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
 import rs.ac.np.police.trafficis.model.Vozac;
 import rs.ac.np.police.trafficis.service.VozacService;
 
@@ -28,37 +30,47 @@ public class VozacController {
     }
 
     // GET /api/vozaci - Dobijanje svih vozača
+    @Operation(summary = "Dobijanje svih vozača", description = "Vraća listu svih registrovanih vozača")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Uspešno vraćena lista vozača")
+    })
     @GetMapping
-    public ResponseEntity<List<Vozac>> getAllVozaci() {
+    public ResponseEntity<List<VozacResponseDTO>> getAllVozaci() {
         List<Vozac> vozaci = vozacService.getAllVozaci();
-        return ResponseEntity.ok(vozaci);
+        List<VozacResponseDTO> vozaciDTO = DTOMapper.toVozacDTOList(vozaci);
+        return ResponseEntity.ok(vozaciDTO);
     }
 
     // GET /api/vozaci/{id} - Dobijanje vozača po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Vozac> getVozacById(@PathVariable Integer id) {
+    public ResponseEntity<VozacResponseDTO> getVozacById(@PathVariable Integer id) {
         Optional<Vozac> vozac = vozacService.getVozacById(id);
-        return vozac.map(ResponseEntity::ok)
+        return vozac.map(v -> ResponseEntity.ok(DTOMapper.toVozacDTO(v)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/vozaci/jmbg/{jmbg} - Dobijanje vozača po JMBG
     @GetMapping("/jmbg/{jmbg}")
-    public ResponseEntity<Vozac> getVozacByJmbg(@PathVariable String jmbg) {
+    public ResponseEntity<VozacResponseDTO> getVozacByJmbg(@PathVariable String jmbg) {
         Optional<Vozac> vozac = vozacService.getVozacByJmbg(jmbg);
-        return vozac.map(ResponseEntity::ok)
+        return vozac.map(v -> ResponseEntity.ok(DTOMapper.toVozacDTO(v)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/vozaci/vozacka/{brojVozacke} - Dobijanje vozača po broju vozačke
     @GetMapping("/vozacka/{brojVozacke}")
-    public ResponseEntity<Vozac> getVozacByBrojVozacke(@PathVariable String brojVozacke) {
+    public ResponseEntity<VozacResponseDTO> getVozacByBrojVozacke(@PathVariable String brojVozacke) {
         Optional<Vozac> vozac = vozacService.getVozacByBrojVozacke(brojVozacke);
-        return vozac.map(ResponseEntity::ok)
+        return vozac.map(v -> ResponseEntity.ok(DTOMapper.toVozacDTO(v)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // POST /api/vozaci - Kreiranje novog vozača
+    @Operation(summary = "Kreiranje novog vozača", description = "Kreira novog vozača u sistemu")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Vozač uspešno kreiran"),
+            @ApiResponse(responseCode = "400", description = "Nevažeći podaci ili vozač već postoji")
+    })
     @PostMapping
     public ResponseEntity<?> createVozac(@RequestBody Vozac vozac) {
         try {

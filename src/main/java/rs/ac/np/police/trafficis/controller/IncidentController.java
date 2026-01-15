@@ -7,7 +7,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.request.IncidentRequestDTO;
+import rs.ac.np.police.trafficis.dto.response.IncidentResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
 import rs.ac.np.police.trafficis.model.Incident;
+import rs.ac.np.police.trafficis.model.Vozac;
+import rs.ac.np.police.trafficis.model.Vozilo;
 import rs.ac.np.police.trafficis.service.IncidentService;
 
 import java.time.LocalDateTime;
@@ -29,60 +34,89 @@ public class IncidentController {
 
     // GET /api/incidenti - Dobijanje svih incidenata
     @GetMapping
-    public ResponseEntity<List<Incident>> getAllIncidenti() {
+    public ResponseEntity<List<IncidentResponseDTO>> getAllIncidenti() {
         List<Incident> incidenti = incidentService.getAllIncidenti();
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // GET /api/incidenti/{id} - Dobijanje incidenta po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Incident> getIncidentById(@PathVariable Integer id) {
+    public ResponseEntity<IncidentResponseDTO> getIncidentById(@PathVariable Integer id) {
         Optional<Incident> incident = incidentService.getIncidentById(id);
-        return incident.map(ResponseEntity::ok)
+        return incident.map(i -> ResponseEntity.ok(DTOMapper.toIncidentDTO(i)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/incidenti/status/{status} - Dobijanje incidenata po statusu
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Incident>> getIncidentiByStatus(@PathVariable String status) {
+    public ResponseEntity<List<IncidentResponseDTO>> getIncidentiByStatus(@PathVariable String status) {
         List<Incident> incidenti = incidentService.getIncidentiByStatus(status);
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // GET /api/incidenti/tezina/{tezina} - Dobijanje incidenata po težini
     @GetMapping("/tezina/{tezina}")
-    public ResponseEntity<List<Incident>> getIncidentiByTezina(@PathVariable String tezina) {
+    public ResponseEntity<List<IncidentResponseDTO>> getIncidentiByTezina(@PathVariable String tezina) {
         List<Incident> incidenti = incidentService.getIncidentiByTezina(tezina);
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // GET /api/incidenti/lokacija/{lokacija} - Dobijanje incidenata po lokaciji
     @GetMapping("/lokacija/{lokacija}")
-    public ResponseEntity<List<Incident>> getIncidentiByLokacija(@PathVariable String lokacija) {
+    public ResponseEntity<List<IncidentResponseDTO>> getIncidentiByLokacija(@PathVariable String lokacija) {
         List<Incident> incidenti = incidentService.getIncidentiByLokacija(lokacija);
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // GET /api/incidenti/period - Dobijanje incidenata za period
     @GetMapping("/period")
-    public ResponseEntity<List<Incident>> getIncidentiByPeriod(
+    public ResponseEntity<List<IncidentResponseDTO>> getIncidentiByPeriod(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<Incident> incidenti = incidentService.getIncidentiByPeriod(start, end);
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // GET /api/incidenti/najnoviji - Dobijanje najnovijih incidenata
     @GetMapping("/najnoviji")
-    public ResponseEntity<List<Incident>> getNajnovijiIncidenti() {
+    public ResponseEntity<List<IncidentResponseDTO>> getNajnovijiIncidenti() {
         List<Incident> incidenti = incidentService.getNajnovijiIncidenti();
-        return ResponseEntity.ok(incidenti);
+        List<IncidentResponseDTO> incidentiDTO = DTOMapper.toIncidentDTOList(incidenti);
+        return ResponseEntity.ok(incidentiDTO);
     }
 
     // POST /api/incidenti - Kreiranje novog incidenta
+    @Operation(summary = "Kreiranje novog incidenta", description = "Kreira novi saobraćajni incident i automatski generiše obaveštenje za javnost")
     @PostMapping
-    public ResponseEntity<?> createIncident(@RequestBody Incident incident) {
+    public ResponseEntity<?> createIncident(@RequestBody IncidentRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Incident entitet
+            Incident incident = new Incident();
+            incident.setDatumVreme(requestDTO.getDatumVreme());
+            incident.setLokacija(requestDTO.getLokacija());
+            incident.setOpis(requestDTO.getOpis());
+            incident.setTezinaIncidenta(requestDTO.getTezinaIncidenta());
+            incident.setStatusIncidenta(requestDTO.getStatusIncidenta());
+
+            // Postavi vozača ako je prosleđen ID
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                incident.setVozac(vozac);
+            }
+
+            // Postavi vozilo ako je prosleđen ID
+            if (requestDTO.getIdVozila() != null) {
+                Vozilo vozilo = new Vozilo();
+                vozilo.setIdVozila(requestDTO.getIdVozila());
+                incident.setVozilo(vozilo);
+            }
+
             Incident createdIncident = incidentService.createIncident(incident);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdIncident);
         } catch (RuntimeException e) {

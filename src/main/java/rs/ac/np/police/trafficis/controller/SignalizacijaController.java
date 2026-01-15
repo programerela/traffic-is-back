@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.response.SignalizacijaResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
 import rs.ac.np.police.trafficis.model.Signalizacija;
 import rs.ac.np.police.trafficis.service.SignalizacijaService;
 
@@ -26,31 +28,34 @@ public class SignalizacijaController {
 
     // GET /api/signalizacija - Dobijanje sve signalizacije
     @GetMapping
-    public ResponseEntity<List<Signalizacija>> getAllSignalizacija() {
+    public ResponseEntity<List<SignalizacijaResponseDTO>> getAllSignalizacija() {
         List<Signalizacija> signalizacija = signalizacijaService.getAllSignalizacija();
-        return ResponseEntity.ok(signalizacija);
+        List<SignalizacijaResponseDTO> signalizacijaDTO = DTOMapper.toSignalizacijaDTOList(signalizacija);
+        return ResponseEntity.ok(signalizacijaDTO);
     }
 
     // GET /api/signalizacija/{id} - Dobijanje signalizacije po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Signalizacija> getSignalizacijaById(@PathVariable Integer id) {
+    public ResponseEntity<SignalizacijaResponseDTO> getSignalizacijaById(@PathVariable Integer id) {
         Optional<Signalizacija> signalizacija = signalizacijaService.getSignalizacijaById(id);
-        return signalizacija.map(ResponseEntity::ok)
+        return signalizacija.map(s -> ResponseEntity.ok(DTOMapper.toSignalizacijaDTO(s)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/signalizacija/status/{status} - Dobijanje signalizacije po statusu
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Signalizacija>> getSignalizacijaByStatus(@PathVariable String status) {
+    public ResponseEntity<List<SignalizacijaResponseDTO>> getSignalizacijaByStatus(@PathVariable String status) {
         List<Signalizacija> signalizacija = signalizacijaService.getSignalizacijaByStatus(status);
-        return ResponseEntity.ok(signalizacija);
+        List<SignalizacijaResponseDTO> signalizacijaDTO = DTOMapper.toSignalizacijaDTOList(signalizacija);
+        return ResponseEntity.ok(signalizacijaDTO);
     }
 
     // GET /api/signalizacija/neispravna - Dobijanje neispravne signalizacije
     @GetMapping("/neispravna")
-    public ResponseEntity<List<Signalizacija>> getNeispravnaSignalizacija() {
+    public ResponseEntity<List<SignalizacijaResponseDTO>> getNeispravnaSignalizacija() {
         List<Signalizacija> signalizacija = signalizacijaService.getNeispravnaSignalizacija();
-        return ResponseEntity.ok(signalizacija);
+        List<SignalizacijaResponseDTO> signalizacijaDTO = DTOMapper.toSignalizacijaDTOList(signalizacija);
+        return ResponseEntity.ok(signalizacijaDTO);
     }
 
     // POST /api/signalizacija - Kreiranje nove signalizacije

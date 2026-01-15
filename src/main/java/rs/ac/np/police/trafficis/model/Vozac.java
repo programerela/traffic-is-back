@@ -2,6 +2,8 @@ package rs.ac.np.police.trafficis.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 @Table(name = "vozac")
@@ -31,12 +33,15 @@ public class Vozac {
     private String telefon;
 
     @OneToMany(mappedBy = "vozac", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Vozilo> vozila;
 
     @OneToMany(mappedBy = "vozac", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Incident> incidenti;
 
     @OneToMany(mappedBy = "vozac", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Kazna> kazne;
 
     // Konstruktori

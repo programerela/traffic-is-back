@@ -1,0 +1,73 @@
+-- Testni podaci za Informacioni sistem policijske stanice
+-- VAŽNO: Pre pokretanja, obrišite sve podatke iz tabela ili resetujte bazu
+
+-- Vozači
+INSERT INTO vozac (id_vozaca, ime, prezime, jmbg, broj_vozacke, adresa, telefon) VALUES
+(1, 'Marko', 'Markovic', '1234567890123', 'ABC123456', 'Bulevar Oslobodjenja 10, Novi Pazar', '+381641234567'),
+(2, 'Petar', 'Petrovic', '9876543210987', 'XYZ987654', 'Njegoseva 20, Novi Pazar', '+381651234567'),
+(3, 'Jovana', 'Jovanovic', '1112223334445', 'DEF456789', 'Cara Dusana 5, Novi Pazar', '+381662345678'),
+(4, 'Ana', 'Anic', '5556667778889', 'GHI789012', 'Stevana Nemanje 15, Novi Pazar', '+381673456789'),
+(5, 'Stefan', 'Stefanovic', '2223334445556', 'JKL012345', 'Vuka Karadzica 30, Novi Pazar', '+381684567890');
+
+-- Vozila
+INSERT INTO vozilo (id_vozila, registracija, marka, model, godiste, id_vozaca) VALUES
+(1, 'BG-123-AB', 'Volkswagen', 'Golf', 2018, 1),
+(2, 'NS-456-CD', 'BMW', '320d', 2020, 2),
+(3, 'NI-789-EF', 'Audi', 'A4', 2019, 3),
+(4, 'KG-012-GH', 'Mercedes', 'C200', 2021, 4),
+(5, 'PA-345-IJ', 'Toyota', 'Corolla', 2017, 5);
+
+-- Korisnici (lozinke su enkriptovane BCrypt-om - sve lozinke su 'password123')
+INSERT INTO korisnik (id_user, username, password, role, ime, prezime) VALUES
+(1, 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin', 'Admin', 'Adminovic'),
+(2, 'policajac1', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'policajac', 'Policajac', 'Policajcevic'),
+(3, 'rukovodilac1', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'rukovodilac', 'Rukovodilac', 'Rukovodiocevic');
+
+-- Signalizacija
+INSERT INTO signalizacija (id_signalizacije, lokacija, tip_signalizacije, status, datum_poslednje_provere) VALUES
+(1, 'Raskrsnica Bulevar Oslobodjenja - Cara Dusana', 'semafor', 'ispravna', '2025-01-10'),
+(2, 'Autoput E75 km 42', 'znak', 'ispravna', '2025-01-09'),
+(3, 'Ulica Stevana Nemanje kod skole', 'semafor', 'u kvaru', '2024-12-15'),
+(4, 'Raskrsnica kod pijace', 'svetlo upozorenja', 'u odrzavanju', '2025-01-08');
+
+-- Incidenti
+INSERT INTO incident (id_incidenta, datum_vreme, lokacija, opis, tezina_incidenta, status_incidenta, id_vozaca, id_vozila) VALUES
+(1, '2025-01-10 14:30:00', 'Autoput E75, km 42', 'Sudar dva vozila u desnoj traci', 'veci', 'obraden', 1, 1),
+(2, '2025-01-09 09:15:00', 'Bulevar Oslobodjenja', 'Vozilo parkirano na pesackom prelazu', 'manji', 'evidentiran', 2, 2),
+(3, '2025-01-08 18:45:00', 'Raskrsnica kod pijace', 'Udes sa lakim povredama', 'sa povredenima', 'prosleden', 3, 3);
+
+-- Kazne
+INSERT INTO kazna (id_kazne, datum_izdavanja, iznos, opis_prekrsaja, status_placanja, vrsta_prekrsaja, id_incidenta, id_vozaca) VALUES
+(1, '2025-01-10', 5000.00, 'Prekoracenje brzine za 30 km/h', 'nije placena', 'Prekoracenje brzine', 1, 1),
+(2, '2025-01-09', 2000.00, 'Parkiranje na nedozvoljenom mestu', 'placena', 'Nepropisno parkiranje', 2, 2),
+(3, '2025-01-08', 10000.00, 'Voznja pod dejstvom alkohola', 'nije placena', 'Alkohol u voznji', 3, 3),
+(4, '2025-01-07', 3000.00, 'Prelazak preko pune linije', 'u postupku', 'Nepropisna voznja', NULL, 4);
+
+-- Obaveštenja za javnost
+INSERT INTO obavestenje (id_obavestenja, tekst, datum_vreme, vrsta, prioritet, id_incidenta) VALUES
+(1, 'Saobracajna nesreca na lokaciji Autoput E75, km 42. Saobracaj otezan.', '2025-01-10 14:35:00', 'saobracajno upozorenje', 'visok', 1),
+(2, 'Manji saobracajni incident na lokaciji Bulevar Oslobodjenja', '2025-01-09 09:20:00', 'obavestenje', 'nizak', 2),
+(3, 'Radovi na putu - Ulica Stevana Nemanje. Ocekujte zastoje.', '2025-01-11 08:00:00', 'obavestenje', 'srednji', NULL);
+
+-- Zahtevi
+INSERT INTO zahtev (id_zahteva, tip_zahteva, opis, datum_vreme, status, id_incidenta, id_signalizacije) VALUES
+(1, 'kvar signalizacije', 'Semafor ne radi kod skole', '2025-01-10 12:00:00', 'u obradi', NULL, 3),
+(2, 'prijava gradjanina', 'Prebrza voznja u stambenom naselju', '2025-01-09 16:30:00', 'primljen', NULL, NULL),
+(3, 'zahtev za izvestaj', 'Potreban mesecni izvestaj o incidentima', '2025-01-08 10:00:00', 'resen', NULL, NULL);
+
+-- Analitički izveštaji
+INSERT INTO analiticki_izvestaj (id_analitike, tip_analitike, datum_generisanja, sadrzaj, id_user) VALUES
+(1, 'mesecni', '2025-01-01 10:00:00', 'Mesecni izvestaj za decembar 2024: 45 incidenata, 32 kazne izdate', 1),
+(2, 'godisnji', '2025-01-01 12:00:00', 'Godisnji izvestaj za 2024: 520 incidenata, 380 kazni izdato', 1),
+(3, 'ad-hoc', '2025-01-10 15:00:00', 'Analiza rizicnih zona: Autoput E75 najrizicnija lokacija', 3);
+
+-- Resetovanje AUTO_INCREMENT sekvenci (za PostgreSQL)
+SELECT setval('vozac_id_vozaca_seq', (SELECT MAX(id_vozaca) FROM vozac));
+SELECT setval('vozilo_id_vozila_seq', (SELECT MAX(id_vozila) FROM vozilo));
+SELECT setval('korisnik_id_user_seq', (SELECT MAX(id_user) FROM korisnik));
+SELECT setval('signalizacija_id_signalizacije_seq', (SELECT MAX(id_signalizacije) FROM signalizacija));
+SELECT setval('incident_id_incidenta_seq', (SELECT MAX(id_incidenta) FROM incident));
+SELECT setval('kazna_id_kazne_seq', (SELECT MAX(id_kazne) FROM kazna));
+SELECT setval('obavestenje_id_obavestenja_seq', (SELECT MAX(id_obavestenja) FROM obavestenje));
+SELECT setval('zahtev_id_zahteva_seq', (SELECT MAX(id_zahteva) FROM zahtev));
+SELECT setval('analiticki_izvestaj_id_analitike_seq', (SELECT MAX(id_analitike) FROM analiticki_izvestaj));

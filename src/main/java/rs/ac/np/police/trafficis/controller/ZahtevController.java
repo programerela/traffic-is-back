@@ -5,6 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.request.ZahtevRequestDTO;
+import rs.ac.np.police.trafficis.dto.response.ZahtevResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
+import rs.ac.np.police.trafficis.model.Incident;
+import rs.ac.np.police.trafficis.model.Signalizacija;
 import rs.ac.np.police.trafficis.model.Zahtev;
 import rs.ac.np.police.trafficis.service.ZahtevService;
 
@@ -26,44 +31,69 @@ public class ZahtevController {
 
     // GET /api/zahtevi - Dobijanje svih zahteva
     @GetMapping
-    public ResponseEntity<List<Zahtev>> getAllZahtevi() {
+    public ResponseEntity<List<ZahtevResponseDTO>> getAllZahtevi() {
         List<Zahtev> zahtevi = zahtevService.getAllZahtevi();
-        return ResponseEntity.ok(zahtevi);
+        List<ZahtevResponseDTO> zahteviDTO = DTOMapper.toZahtevDTOList(zahtevi);
+        return ResponseEntity.ok(zahteviDTO);
     }
 
     // GET /api/zahtevi/{id} - Dobijanje zahteva po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Zahtev> getZahtevById(@PathVariable Integer id) {
+    public ResponseEntity<ZahtevResponseDTO> getZahtevById(@PathVariable Integer id) {
         Optional<Zahtev> zahtev = zahtevService.getZahtevById(id);
-        return zahtev.map(ResponseEntity::ok)
+        return zahtev.map(z -> ResponseEntity.ok(DTOMapper.toZahtevDTO(z)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/zahtevi/status/{status} - Dobijanje zahteva po statusu
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Zahtev>> getZahteviByStatus(@PathVariable String status) {
+    public ResponseEntity<List<ZahtevResponseDTO>> getZahteviByStatus(@PathVariable String status) {
         List<Zahtev> zahtevi = zahtevService.getZahteviByStatus(status);
-        return ResponseEntity.ok(zahtevi);
+        List<ZahtevResponseDTO> zahteviDTO = DTOMapper.toZahtevDTOList(zahtevi);
+        return ResponseEntity.ok(zahteviDTO);
     }
 
     // GET /api/zahtevi/aktivni - Dobijanje aktivnih zahteva
     @GetMapping("/aktivni")
-    public ResponseEntity<List<Zahtev>> getAktivniZahtevi() {
+    public ResponseEntity<List<ZahtevResponseDTO>> getAktivniZahtevi() {
         List<Zahtev> zahtevi = zahtevService.getAktivniZahtevi();
-        return ResponseEntity.ok(zahtevi);
+        List<ZahtevResponseDTO> zahteviDTO = DTOMapper.toZahtevDTOList(zahtevi);
+        return ResponseEntity.ok(zahteviDTO);
     }
 
     // GET /api/zahtevi/najnoviji - Dobijanje najnovijih zahteva
     @GetMapping("/najnoviji")
-    public ResponseEntity<List<Zahtev>> getNajnovijiZahtevi() {
+    public ResponseEntity<List<ZahtevResponseDTO>> getNajnovijiZahtevi() {
         List<Zahtev> zahtevi = zahtevService.getNajnovijiZahtevi();
-        return ResponseEntity.ok(zahtevi);
+        List<ZahtevResponseDTO> zahteviDTO = DTOMapper.toZahtevDTOList(zahtevi);
+        return ResponseEntity.ok(zahteviDTO);
     }
 
     // POST /api/zahtevi - Kreiranje novog zahteva
     @PostMapping
-    public ResponseEntity<?> createZahtev(@RequestBody Zahtev zahtev) {
+    public ResponseEntity<?> createZahtev(@RequestBody ZahtevRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Zahtev entitet
+            Zahtev zahtev = new Zahtev();
+            zahtev.setTipZahteva(requestDTO.getTipZahteva());
+            zahtev.setOpis(requestDTO.getOpis());
+            zahtev.setDatumVreme(requestDTO.getDatumVreme());
+            zahtev.setStatus(requestDTO.getStatus());
+
+            // Postavi incident ako postoji
+            if (requestDTO.getIdIncidenta() != null) {
+                Incident incident = new Incident();
+                incident.setIdIncidenta(requestDTO.getIdIncidenta());
+                zahtev.setIncident(incident);
+            }
+
+            // Postavi signalizaciju ako postoji
+            if (requestDTO.getIdSignalizacije() != null) {
+                Signalizacija signalizacija = new Signalizacija();
+                signalizacija.setIdSignalizacije(requestDTO.getIdSignalizacije());
+                zahtev.setSignalizacija(signalizacija);
+            }
+
             Zahtev createdZahtev = zahtevService.createZahtev(zahtev);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdZahtev);
         } catch (RuntimeException e) {

@@ -5,7 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.request.KaznaRequestDTO;
+import rs.ac.np.police.trafficis.dto.response.KaznaResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
+import rs.ac.np.police.trafficis.model.Incident;
 import rs.ac.np.police.trafficis.model.Kazna;
+import rs.ac.np.police.trafficis.model.Vozac;
 import rs.ac.np.police.trafficis.service.KaznaService;
 
 import java.util.List;
@@ -26,24 +31,26 @@ public class KaznaController {
 
     // GET /api/kazne - Dobijanje svih kazni
     @GetMapping
-    public ResponseEntity<List<Kazna>> getAllKazne() {
+    public ResponseEntity<List<KaznaResponseDTO>> getAllKazne() {
         List<Kazna> kazne = kaznaService.getAllKazne();
-        return ResponseEntity.ok(kazne);
+        List<KaznaResponseDTO> kazneDTO = DTOMapper.toKaznaDTOList(kazne);
+        return ResponseEntity.ok(kazneDTO);
     }
 
     // GET /api/kazne/{id} - Dobijanje kazne po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Kazna> getKaznaById(@PathVariable Integer id) {
+    public ResponseEntity<KaznaResponseDTO> getKaznaById(@PathVariable Integer id) {
         Optional<Kazna> kazna = kaznaService.getKaznaById(id);
-        return kazna.map(ResponseEntity::ok)
+        return kazna.map(k -> ResponseEntity.ok(DTOMapper.toKaznaDTO(k)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/kazne/status/{status} - Dobijanje kazni po statusu plaćanja
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Kazna>> getKazneByStatus(@PathVariable String status) {
+    public ResponseEntity<List<KaznaResponseDTO>> getKazneByStatus(@PathVariable String status) {
         List<Kazna> kazne = kaznaService.getKazneByStatusPlacanja(status);
-        return ResponseEntity.ok(kazne);
+        List<KaznaResponseDTO> kazneDTO = DTOMapper.toKaznaDTOList(kazne);
+        return ResponseEntity.ok(kazneDTO);
     }
 
     // GET /api/kazne/vrsta/{vrsta} - Dobijanje kazni po vrsti prekršaja
@@ -55,8 +62,30 @@ public class KaznaController {
 
     // POST /api/kazne - Kreiranje nove kazne
     @PostMapping
-    public ResponseEntity<?> createKazna(@RequestBody Kazna kazna) {
+    public ResponseEntity<?> createKazna(@RequestBody KaznaRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Kazna entitet
+            Kazna kazna = new Kazna();
+            kazna.setDatumIzdavanja(requestDTO.getDatumIzdavanja());
+            kazna.setIznos(requestDTO.getIznos());
+            kazna.setOpisPrekrsaja(requestDTO.getOpisPrekrsaja());
+            kazna.setStatusPlacanja(requestDTO.getStatusPlacanja());
+            kazna.setVrstaPrekrsaja(requestDTO.getVrstaPrekrsaja());
+
+            // Postavi vozača
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                kazna.setVozac(vozac);
+            }
+
+            // Postavi incident ako postoji
+            if (requestDTO.getIdIncidenta() != null) {
+                Incident incident = new Incident();
+                incident.setIdIncidenta(requestDTO.getIdIncidenta());
+                kazna.setIncident(incident);
+            }
+
             Kazna createdKazna = kaznaService.createKazna(kazna);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdKazna);
         } catch (RuntimeException e) {

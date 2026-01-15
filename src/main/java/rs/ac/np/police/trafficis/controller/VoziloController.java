@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.np.police.trafficis.dto.request.VoziloRequestDTO;
+import rs.ac.np.police.trafficis.dto.response.VoziloResponseDTO;
+import rs.ac.np.police.trafficis.mapper.DTOMapper;
+import rs.ac.np.police.trafficis.model.Vozac;
 import rs.ac.np.police.trafficis.model.Vozilo;
 import rs.ac.np.police.trafficis.service.VoziloService;
 
@@ -26,38 +30,54 @@ public class VoziloController {
 
     // GET /api/vozila - Dobijanje svih vozila
     @GetMapping
-    public ResponseEntity<List<Vozilo>> getAllVozila() {
+    public ResponseEntity<List<VoziloResponseDTO>> getAllVozila() {
         List<Vozilo> vozila = voziloService.getAllVozila();
-        return ResponseEntity.ok(vozila);
+        List<VoziloResponseDTO> vozilaDTO = DTOMapper.toVoziloDTOList(vozila);
+        return ResponseEntity.ok(vozilaDTO);
     }
 
     // GET /api/vozila/{id} - Dobijanje vozila po ID-u
     @GetMapping("/{id}")
-    public ResponseEntity<Vozilo> getVoziloById(@PathVariable Integer id) {
+    public ResponseEntity<VoziloResponseDTO> getVoziloById(@PathVariable Integer id) {
         Optional<Vozilo> vozilo = voziloService.getVoziloById(id);
-        return vozilo.map(ResponseEntity::ok)
+        return vozilo.map(v -> ResponseEntity.ok(DTOMapper.toVoziloDTO(v)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/vozila/registracija/{registracija} - Dobijanje vozila po registraciji
     @GetMapping("/registracija/{registracija}")
-    public ResponseEntity<Vozilo> getVoziloByRegistracija(@PathVariable String registracija) {
+    public ResponseEntity<VoziloResponseDTO> getVoziloByRegistracija(@PathVariable String registracija) {
         Optional<Vozilo> vozilo = voziloService.getVoziloByRegistracija(registracija);
-        return vozilo.map(ResponseEntity::ok)
+        return vozilo.map(v -> ResponseEntity.ok(DTOMapper.toVoziloDTO(v)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/vozila/marka/{marka} - Dobijanje vozila po marki
     @GetMapping("/marka/{marka}")
-    public ResponseEntity<List<Vozilo>> getVozilaByMarka(@PathVariable String marka) {
+    public ResponseEntity<List<VoziloResponseDTO>> getVozilaByMarka(@PathVariable String marka) {
         List<Vozilo> vozila = voziloService.getVozilaByMarka(marka);
-        return ResponseEntity.ok(vozila);
+        List<VoziloResponseDTO> vozilaDTO = DTOMapper.toVoziloDTOList(vozila);
+        return ResponseEntity.ok(vozilaDTO);
     }
 
     // POST /api/vozila - Kreiranje novog vozila
     @PostMapping
-    public ResponseEntity<?> createVozilo(@RequestBody Vozilo vozilo) {
+    public ResponseEntity<?> createVozilo(@RequestBody VoziloRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Vozilo entitet
+            Vozilo vozilo = new Vozilo();
+            vozilo.setRegistracija(requestDTO.getRegistracija());
+            vozilo.setMarka(requestDTO.getMarka());
+            vozilo.setModel(requestDTO.getModel());
+            vozilo.setGodiste(requestDTO.getGodiste());
+
+            // Postavi vozača ako je prosleđen ID
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                vozilo.setVozac(vozac);
+            }
+
             Vozilo createdVozilo = voziloService.createVozilo(vozilo);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdVozilo);
         } catch (RuntimeException e) {

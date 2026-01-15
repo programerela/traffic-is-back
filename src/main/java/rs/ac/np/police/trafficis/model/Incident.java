@@ -3,6 +3,8 @@ package rs.ac.np.police.trafficis.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 @Table(name = "incident")
@@ -37,12 +39,15 @@ public class Incident {
     private Vozilo vozilo;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Kazna> kazne;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Obavestenje> obavestenja;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Zahtev> zahtevi;
 
     // Konstruktori

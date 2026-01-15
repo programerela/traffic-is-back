@@ -1,4 +1,4 @@
-package rs.ac.np.police.trafficis.dto;
+package rs.ac.np.police.trafficis.dto.request;
 
 public class KorisnikDTO {
 

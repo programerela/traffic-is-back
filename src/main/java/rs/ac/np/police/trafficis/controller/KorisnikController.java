@@ -1,12 +1,11 @@
 package rs.ac.np.police.trafficis.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.np.police.trafficis.dto.KorisnikDTO;
+import rs.ac.np.police.trafficis.dto.request.KorisnikDTO;
 import rs.ac.np.police.trafficis.mapper.KorisnikMapper;
 import rs.ac.np.police.trafficis.model.Korisnik;
 import rs.ac.np.police.trafficis.service.KorisnikService;

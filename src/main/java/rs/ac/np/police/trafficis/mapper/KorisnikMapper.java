@@ -1,6 +1,6 @@
 package rs.ac.np.police.trafficis.mapper;
 
-import rs.ac.np.police.trafficis.dto.KorisnikDTO;
+import rs.ac.np.police.trafficis.dto.request.KorisnikDTO;
 import rs.ac.np.police.trafficis.model.Korisnik;
 
 import java.util.List;
