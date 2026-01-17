@@ -103,10 +103,33 @@ public class ZahtevController {
 
     // PUT /api/zahtevi/{id} - Ažuriranje zahteva
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateZahtev(@PathVariable Integer id, @RequestBody Zahtev zahtev) {
+    public ResponseEntity<?> updateZahtev(@PathVariable Integer id, @RequestBody ZahtevRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Zahtev entitet
+            Zahtev zahtev = new Zahtev();
+            zahtev.setIdZahteva(id);
+            zahtev.setTipZahteva(requestDTO.getTipZahteva());
+            zahtev.setOpis(requestDTO.getOpis());
+            zahtev.setDatumVreme(requestDTO.getDatumVreme());
+            zahtev.setStatus(requestDTO.getStatus());
+
+            // Postavi incident ako postoji
+            if (requestDTO.getIdIncidenta() != null) {
+                Incident incident = new Incident();
+                incident.setIdIncidenta(requestDTO.getIdIncidenta());
+                zahtev.setIncident(incident);
+            }
+
+            // Postavi signalizaciju ako postoji
+            if (requestDTO.getIdSignalizacije() != null) {
+                Signalizacija signalizacija = new Signalizacija();
+                signalizacija.setIdSignalizacije(requestDTO.getIdSignalizacije());
+                zahtev.setSignalizacija(signalizacija);
+            }
+
             Zahtev updatedZahtev = zahtevService.updateZahtev(id, zahtev);
-            return ResponseEntity.ok(updatedZahtev);
+            ZahtevResponseDTO responseDTO = DTOMapper.toZahtevDTO(updatedZahtev);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

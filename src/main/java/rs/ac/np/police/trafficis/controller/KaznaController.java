@@ -95,10 +95,34 @@ public class KaznaController {
 
     // PUT /api/kazne/{id} - Ažuriranje kazne
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateKazna(@PathVariable Integer id, @RequestBody Kazna kazna) {
+    public ResponseEntity<?> updateKazna(@PathVariable Integer id, @RequestBody KaznaRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Kazna entitet
+            Kazna kazna = new Kazna();
+            kazna.setIdKazne(id);
+            kazna.setDatumIzdavanja(requestDTO.getDatumIzdavanja());
+            kazna.setIznos(requestDTO.getIznos());
+            kazna.setOpisPrekrsaja(requestDTO.getOpisPrekrsaja());
+            kazna.setStatusPlacanja(requestDTO.getStatusPlacanja());
+            kazna.setVrstaPrekrsaja(requestDTO.getVrstaPrekrsaja());
+
+            // Postavi vozača
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                kazna.setVozac(vozac);
+            }
+
+            // Postavi incident ako postoji
+            if (requestDTO.getIdIncidenta() != null) {
+                Incident incident = new Incident();
+                incident.setIdIncidenta(requestDTO.getIdIncidenta());
+                kazna.setIncident(incident);
+            }
+
             Kazna updatedKazna = kaznaService.updateKazna(id, kazna);
-            return ResponseEntity.ok(updatedKazna);
+            KaznaResponseDTO responseDTO = DTOMapper.toKaznaDTO(updatedKazna);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

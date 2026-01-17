@@ -74,7 +74,8 @@ public class SignalizacijaController {
     public ResponseEntity<?> updateSignalizacija(@PathVariable Integer id, @RequestBody Signalizacija signalizacija) {
         try {
             Signalizacija updatedSignalizacija = signalizacijaService.updateSignalizacija(id, signalizacija);
-            return ResponseEntity.ok(updatedSignalizacija);
+            SignalizacijaResponseDTO responseDTO = DTOMapper.toSignalizacijaDTO(updatedSignalizacija);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

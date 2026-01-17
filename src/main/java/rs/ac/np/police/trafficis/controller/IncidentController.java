@@ -126,10 +126,34 @@ public class IncidentController {
 
     // PUT /api/incidenti/{id} - Ažuriranje incidenta
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateIncident(@PathVariable Integer id, @RequestBody Incident incident) {
+    public ResponseEntity<?> updateIncident(@PathVariable Integer id, @RequestBody IncidentRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Incident entitet
+            Incident incident = new Incident();
+            incident.setIdIncidenta(id);
+            incident.setDatumVreme(requestDTO.getDatumVreme());
+            incident.setLokacija(requestDTO.getLokacija());
+            incident.setOpis(requestDTO.getOpis());
+            incident.setTezinaIncidenta(requestDTO.getTezinaIncidenta());
+            incident.setStatusIncidenta(requestDTO.getStatusIncidenta());
+
+            // Postavi vozača ako je prosleđen ID
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                incident.setVozac(vozac);
+            }
+
+            // Postavi vozilo ako je prosleđen ID
+            if (requestDTO.getIdVozila() != null) {
+                Vozilo vozilo = new Vozilo();
+                vozilo.setIdVozila(requestDTO.getIdVozila());
+                incident.setVozilo(vozilo);
+            }
+
             Incident updatedIncident = incidentService.updateIncident(id, incident);
-            return ResponseEntity.ok(updatedIncident);
+            IncidentResponseDTO responseDTO = DTOMapper.toIncidentDTO(updatedIncident);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

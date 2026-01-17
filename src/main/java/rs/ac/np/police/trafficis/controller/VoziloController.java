@@ -87,10 +87,26 @@ public class VoziloController {
 
     // PUT /api/vozila/{id} - Ažuriranje vozila
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateVozilo(@PathVariable Integer id, @RequestBody Vozilo vozilo) {
+    public ResponseEntity<?> updateVozilo(@PathVariable Integer id, @RequestBody VoziloRequestDTO requestDTO) {
         try {
+            // Konvertuj DTO u Vozilo entitet
+            Vozilo vozilo = new Vozilo();
+            vozilo.setIdVozila(id);
+            vozilo.setRegistracija(requestDTO.getRegistracija());
+            vozilo.setMarka(requestDTO.getMarka());
+            vozilo.setModel(requestDTO.getModel());
+            vozilo.setGodiste(requestDTO.getGodiste());
+
+            // Postavi vozača ako je prosleđen ID
+            if (requestDTO.getIdVozaca() != null) {
+                Vozac vozac = new Vozac();
+                vozac.setIdVozaca(requestDTO.getIdVozaca());
+                vozilo.setVozac(vozac);
+            }
+
             Vozilo updatedVozilo = voziloService.updateVozilo(id, vozilo);
-            return ResponseEntity.ok(updatedVozilo);
+            VoziloResponseDTO responseDTO = DTOMapper.toVoziloDTO(updatedVozilo);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

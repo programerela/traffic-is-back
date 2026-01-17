@@ -86,7 +86,8 @@ public class VozacController {
     public ResponseEntity<?> updateVozac(@PathVariable Integer id, @RequestBody Vozac vozac) {
         try {
             Vozac updatedVozac = vozacService.updateVozac(id, vozac);
-            return ResponseEntity.ok(updatedVozac);
+            VozacResponseDTO responseDTO = DTOMapper.toVozacDTO(updatedVozac);
+            return ResponseEntity.ok(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
